@@ -1,31 +1,76 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import { IonicPage } from 'ionic-angular';
 
 declare var google;
 
 /**
- * Para obter a chave
- * https://developers.google.com/maps/documentation/static-maps/get-api-key?hl=pt-br
+ * https://developers.google.com/maps/documentation/javascript/directions
  */
+@IonicPage()
 @Component({
-  selector: 'page-home',
-  templateUrl: 'home.html'
+    selector: 'page-home',
+    templateUrl: 'home.html'
 })
-export class HomePage {
-  pages: Array<{title: string, component: any}>;
 
-  constructor(public navCtrl: NavController) { }
+export class HomePage {
+  directionsService = new google.maps.DirectionsService();
+  directionsDisplay = new google.maps.DirectionsRenderer();
+  map: any;
+  startPosition: any;
+  endPosition: any;
+  originPosition: string;
+  destinationPosition: string;
+
+  constructor() { }
 
   ionViewDidLoad() {
-    this.pages = [
-      { title: 'Exemplo 1', component: 'Exemplo1Page' },
-      { title: 'Exemplo 2', component: 'Exemplo2Page' },
-      { title: 'Exemplo 3', component: 'Exemplo3Page' },
-      { title: 'Exemplo 4', component: 'Exemplo4Page' }
-    ];
+    this.initializeMap();
   }
 
-  openPage(page: any) {
-    this.navCtrl.push(page.component);
+  initializeMap() {
+    this.startPosition = new google.maps.LatLng(-22.906344, -43.133293);
+    this.endPosition = new google.maps.LatLng(-22.896703, -43.125275);
+
+    const mapOptions = {
+      zoom: 18,
+      center: this.startPosition,
+      disableDefaultUI: true
+    }
+
+    this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    this.directionsDisplay.setMap(this.map);
+
+    const markerStart = new google.maps.Marker({
+      position: this.startPosition,
+      map: this.map,
+    });
+
+    const markerEnd = new google.maps.Marker({
+      position: this.endPosition,
+      map: this.map,
+    });
+
+    this.calculateRoute();
+  }
+
+  calculateRoute() {
+    if (this.startPosition && this.endPosition) {
+      const request = {
+        // Pode ser uma coordenada (LatLng), uma string ou um lugar
+        origin: this.startPosition,
+        destination: this.endPosition,
+        travelMode: 'DRIVING'
+      };
+
+      this.traceRoute(this.directionsService, this.directionsDisplay, request);
+    }
+  }
+
+  traceRoute(service: any, display: any, request: any) {
+    service.route(request, function (result, status) {
+      if (status == 'OK') {
+        display.setDirections(result);
+      }
+    });
   }
 }
