@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
 
 declare var google;
 
@@ -12,20 +11,55 @@ declare var google;
   templateUrl: 'home.html'
 })
 export class HomePage {
-  pages: Array<{title: string, component: any}>;
+  directionsService = new google.maps.DirectionsService();
+  directionsDisplay = new google.maps.DirectionsRenderer();
+  map: any;
+  startPosition: any;
+  originPosition: string;
+  destinationPosition: string;
 
-  constructor(public navCtrl: NavController) { }
+  constructor() { }
 
   ionViewDidLoad() {
-    this.pages = [
-      { title: 'Exemplo 1', component: 'Exemplo1Page' },
-      { title: 'Exemplo 2', component: 'Exemplo2Page' },
-      { title: 'Exemplo 3', component: 'Exemplo3Page' },
-      { title: 'Exemplo 4', component: 'Exemplo4Page' }
-    ];
+    this.initializeMap();
   }
 
-  openPage(page: any) {
-    this.navCtrl.push(page.component);
+  initializeMap() {
+    this.startPosition = new google.maps.LatLng(-21.763409, -43.349034);
+
+    const mapOptions = {
+      zoom: 18,
+      center: this.startPosition,
+      disableDefaultUI: true
+    }
+
+    this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    this.directionsDisplay.setMap(this.map);
+
+    const marker = new google.maps.Marker({
+      position: this.startPosition,
+      map: this.map,
+    });
+  }
+
+  calculateRoute() {
+    if (this.destinationPosition && this.originPosition) {
+      const request = {
+        // Pode ser uma coordenada (LatLng), uma string ou um lugar
+        origin: this.originPosition,
+        destination: this.destinationPosition,
+        travelMode: 'DRIVING'
+      };
+
+      this.traceRoute(this.directionsService, this.directionsDisplay, request);
+    }
+  }
+
+  traceRoute(service: any, display: any, request: any) {
+    service.route(request, function (result, status) {
+      if (status == 'OK') {
+        display.setDirections(result);
+      }
+    });
   }
 }
