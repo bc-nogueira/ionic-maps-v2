@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { IonicPage } from 'ionic-angular';
+import { IonicPage, ToastController } from 'ionic-angular';
+import moment from 'moment';
 
 declare var google;
 
@@ -19,10 +20,12 @@ export class MapPage {
   map: any;
   origem: any;
   destino: any;
+  inicioTimer: number;
 
-  constructor() { }
+  constructor(public toastController: ToastController) { }
 
   ionViewDidLoad() {
+    this.inicioTimer = moment().valueOf();
     this.initializeMap();
     this.calculateRoute();
   }
@@ -43,16 +46,6 @@ export class MapPage {
 
     this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
     this.directionsDisplay.setMap(this.map);
-
-    const marcadorOrigem = new google.maps.Marker({
-      position: this.origem,
-      map: this.map,
-    });
-
-    const marcadorDestino = new google.maps.Marker({
-      position: this.destino,
-      map: this.map,
-    });
   }
 
   calculateRoute() {
@@ -65,6 +58,7 @@ export class MapPage {
       };
 
       this.traceRoute(this.directionsService, this.directionsDisplay, request);
+      this.showToast();
     }
   }
 
@@ -74,5 +68,12 @@ export class MapPage {
         display.setDirections(result);
       }
     });
+  }
+
+  showToast() {
+    const toast = this.toastController.create({
+      message: (moment().valueOf() - this.inicioTimer) + "ms"
+    });
+    toast.present();
   }
 }
